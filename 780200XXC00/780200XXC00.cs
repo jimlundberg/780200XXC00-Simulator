@@ -275,14 +275,14 @@ namespace _780200XXC00
             }
 
             Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
-            ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.IndexOf("\\"));
+            ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.LastIndexOf("\\"));
             Port = int.Parse(portArg);
             CpuCores = int.Parse(cpuCores);
 
             Console.WriteLine("\nPress the Enter key to exit the application...\n");
 
             // Start the TCP/IP receive listening method
-            StartListening(); 
+            StartListening();
 
             Console.ReadLine();
         }

@@ -164,7 +164,7 @@ namespace _780200XXC00
                 tcpListener.Start();
                 byte[] bytes = new byte[1024];
 
-                Console.WriteLine("Server Started");
+                Console.WriteLine("780200XXC00 Simulator Started...\n");
 
                 while (true)
                 {
@@ -173,6 +173,7 @@ namespace _780200XXC00
                     {
                         // Read incomming stream into byte arrary.                      
                         int length = 0;
+                        int stepIndex = 0;
                         while ((length = stream.Read(bytes, 0, bytes.Length)) != 0)
                         {
                             byte[] incommingData = new byte[length];
@@ -181,38 +182,33 @@ namespace _780200XXC00
                             // Convert byte array to string message.                            
                             string clientMessage = Encoding.ASCII.GetString(incommingData);
 
-                            int stepIndex = 0;
                             if (clientMessage == "status")
                             {
-                                for (int i = 0; i < 30; i++)
-                                {
-                                    stepIndex = i % 5;
-                                    string responseMsg = String.Format("Step {0} in process.", stepIndex);
-
-                                    // Translate the passed message into ASCII and store it as a Byte array.
-                                    Byte[] responseData = System.Text.Encoding.ASCII.GetBytes(responseMsg);
-
-                                    // Send the message to the connected TcpServer.
-                                    stream.Write(responseData, 0, responseData.Length);
-
-                                    Console.WriteLine(String.Format("Sending {0}", responseMsg));
-                                }
-
-                                // Send complete message
-                                string finalResponse = "Whole process done, socket closed.";
+                                string responseMsg = String.Format("Step {0} in process.", stepIndex++);
 
                                 // Translate the passed message into ASCII and store it as a Byte array.
-                                Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
+                                Byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
 
                                 // Send the message to the connected TcpServer.
-                                stream.Write(finalResponseData, 0, finalResponseData.Length);
+                                stream.Write(responseData, 0, responseData.Length);
 
-                                Console.WriteLine(String.Format("Sent {0}", finalResponseData));
-
-                                // Now run the Modeler job Finish
-                                RunModelerSimulationFinish(job);
+                                Console.WriteLine(String.Format("Sending {0}", responseMsg));
                             }
+
+                            // Send complete message
+                            string finalResponse = "Whole process done, socket closed.";
+
+                            // Translate the passed message into ASCII and store it as a Byte array.
+                            Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
+
+                            // Send the message to the connected TcpServer.
+                            stream.Write(finalResponseData, 0, finalResponseData.Length);
+
+                            Console.WriteLine(String.Format("Sent {0}", finalResponseData));
                         }
+
+                        // Now run the Modeler job Finish
+                        RunModelerSimulationFinish(job);
                     }
                 }
             }
@@ -263,27 +259,20 @@ namespace _780200XXC00
 
         static void Main(string[] args)
         {
-            string processingBufferDirectoryArg = args[1];
-            string portArg = args[2];
-            string cpuCores = args[3];
-
-            if (args.Length > 1)
-            {
-                processingBufferDirectoryArg = args[1]; // - d C:\SSMCharacterizationHandler\ProcessingBuffer\1185840_202003250942
-                portArg = args[3];   // - s 3000
-                cpuCores = args[5];  // - p 4
-            }
+            // Get the raw parameter strings skipping the arg parameters and dash
+            string processingBufferDirectoryArg = args[1]; // -d C:\SSMCharacterizationHandler\ProcessingBuffer\1185840_202003250942
+            string portArg = args[3];  // -s 3000
+            string cpuCores = args[5];  // -p 4
 
             Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
             ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.LastIndexOf("\\"));
             Port = int.Parse(portArg);
             CpuCores = int.Parse(cpuCores);
 
-            Console.WriteLine("\nPress the Enter key to exit the application...\n");
-
             // Start the TCP/IP receive listening method
             StartListening();
 
+            Console.WriteLine("Press the Enter key to exit the application...\n");
             Console.ReadLine();
         }
     }

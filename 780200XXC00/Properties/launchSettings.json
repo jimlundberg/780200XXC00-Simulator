@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "780200XXC00": {
+      "commandName": "Project",
+      "commandLineArgs": "-d C:\\SSMCharacterizationHandler\\ProcessingBuffer\\1185840_202003250942 -s 3000 -p 4"
+    }
+  }
+}

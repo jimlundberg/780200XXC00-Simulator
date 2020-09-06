@@ -282,7 +282,7 @@ namespace _780200XXC00
             Console.WriteLine("\nPress the Enter key to exit the application...\n");
 
             // Start the TCP/IP receive listening method
-            StartListening();
+            StartListening(); 
 
             Console.ReadLine();
         }

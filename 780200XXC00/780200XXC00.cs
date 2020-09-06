@@ -134,87 +134,172 @@ namespace _780200XXC00
         }
     }
 
-    class Program
+    /// <summary>
+    /// State object for reading client data asynchronously 
+    /// </summary>
+    public class StateObject
     {
-        public static Thread tcpListenerThread;
-        private static string Job = "1185840_202003250942";
-        private static string ProcessingBufferDirectory = @"C:\SSMCharacterizationHandler\ProcessingBuffer";
-        private static int Port = 3000;
-        private static int CpuCores = 4;
+        // Size of receive buffer.  
+        public const int BufferSize = 1024;
 
+        // Receive buffer.  
+        public byte[] buffer = new byte[BufferSize];
+
+        // Received data string.
+        public StringBuilder sb = new StringBuilder();
+
+        // Client socket.
+        public Socket workSocket = null;
+    }
+
+    /// <summary>
+    /// AsynchronousSocketListener class
+    /// </summary>
+    public class AsynchronousSocketListener
+    {
+        public static ManualResetEvent allDone = new ManualResetEvent(false); // Thread signal
+        private static string ProcessingBufferDirectory = @"C:\SSMCharacterizationHandler\ProcessingBuffer";
+        //private static string Job = "1185840_202003250942";
+        //private static string Server = "127.0.0.1";
+        //private static int Port = 3000;
+        //private static int CpuCores = 4;
+
+        /// <summary>
+        /// AsynchronousSocketListener default constructor
+        /// </summary>
+        public AsynchronousSocketListener() { }
+
+        /// <summary>
+        /// Start Listening to TCP/IP
+        /// </summary>
         public static void StartListening()
         {
-            // Start TcpServer background thread        
-            tcpListenerThread = new Thread(new ThreadStart(ListenForIncommingRequests))
-            {
-                IsBackground = true
-            };
-            tcpListenerThread.Start();
-        }
+            // Establish the local endpoint for the socket
+            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
+            IPAddress ipAddress = ipHostInfo.AddressList[0];
+            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
 
-        private static void ListenForIncommingRequests()
-        {
-            int port = 3000;
-            string server = "127.0.0.1";
-            string job = "1185840_202003250942";
+            // Create a TCP/IP socket
+            Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
 
+            // Bind the socket to the local endpoint and listen for incoming connections
             try
             {
-                TcpListener tcpListener = new TcpListener(IPAddress.Parse(server), port);
-                tcpListener.Start();
-                byte[] bytes = new byte[1024];
-
-                Console.WriteLine("780200XXC00 Simulator Started...\n");
+                listener.Bind(localEndPoint);
+                listener.Listen(100);
 
                 while (true)
                 {
-                    // Get a stream object for reading 
-                    using (NetworkStream stream = tcpListener.AcceptTcpClient().GetStream())
-                    {
-                        // Read incomming stream into byte arrary.                      
-                        int length = 0;
-                        int stepIndex = 0;
-                        while ((length = stream.Read(bytes, 0, bytes.Length)) != 0)
-                        {
-                            byte[] incommingData = new byte[length];
-                            Array.Copy(bytes, 0, incommingData, 0, length);
+                    // Set the event to nonsignaled state
+                    allDone.Reset();
 
-                            // Convert byte array to string message.                            
-                            string clientMessage = Encoding.ASCII.GetString(incommingData);
+                    // Start an asynchronous socket to listen for connections
+                    Console.WriteLine("Waiting for a connection...");
+                    listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
 
-                            if (clientMessage == "status")
-                            {
-                                string responseMsg = String.Format("Step {0} in process.", stepIndex++);
+                    // Wait until a connection is made before continuing
+                    allDone.WaitOne();
+                }
 
-                                // Translate the passed message into ASCII and store it as a Byte array.
-                                Byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
+            }
 
-                                // Send the message to the connected TcpServer.
-                                stream.Write(responseData, 0, responseData.Length);
+            Console.WriteLine("\nPress ENTER to continue...");
+            Console.Read();
+        }
 
-                                Console.WriteLine(String.Format("Sending {0}", responseMsg));
-                            }
+        /// <summary>
+        /// Accept TCP/IP Callback
+        /// </summary>
+        /// <param name="ar"></param>
+        public static void AcceptCallback(IAsyncResult ar)
+        {
+            // Signal the main thread to continue
+            allDone.Set();
 
-                            // Send complete message
-                            string finalResponse = "Whole process done, socket closed.";
+            // Get the socket that handles the client request
+            Socket listener = (Socket)ar.AsyncState;
+            Socket handler = listener.EndAccept(ar);
 
-                            // Translate the passed message into ASCII and store it as a Byte array.
-                            Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
+            // Create the state object
+            StateObject state = new StateObject();
+            state.workSocket = handler;
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                new AsyncCallback(ReadCallback), state);
+        }
 
-                            // Send the message to the connected TcpServer.
-                            stream.Write(finalResponseData, 0, finalResponseData.Length);
+        /// <summary>
+        /// Read Callback
+        /// </summary>
+        /// <param name="ar"></param>
+        public static void ReadCallback(IAsyncResult ar)
+        {
+            String content = String.Empty;
 
-                            Console.WriteLine(String.Format("Sent {0}", finalResponseData));
-                        }
+            // Retrieve state object and handler socket from the asynchronous state object
+            StateObject state = (StateObject)ar.AsyncState;
+            Socket handler = state.workSocket;
 
-                        // Now run the Modeler job Finish
-                        RunModelerSimulationFinish(job);
-                    }
+            // Read data from the client socket
+            int bytesRead = handler.EndReceive(ar);
+
+            if (bytesRead > 0)
+            {
+                // There  might be more data, so store the data received so far
+                state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+                // Check for end-of-file tag. If it is not there, read more data
+                content = state.sb.ToString();
+                if (content.IndexOf("<EOF>") > -1)
+                {
+                    // All the data has been read from the client so display it on the console
+                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
+
+                    // Echo the data back to the client
+                    Send(handler, content);
+                }
+                else
+                {
+                    // Not all data received. Get more
+                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
+                        new AsyncCallback(ReadCallback), state);
                 }
             }
-            catch (SocketException socketException)
+        }
+
+        private static void Send(Socket handler, String data)
+        {
+            // Convert the string data to byte data using ASCII encoding
+            byte[] byteData = Encoding.ASCII.GetBytes(data);
+
+            // Begin sending the data to the remote device
+            handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
+        }
+
+        /// <summary>
+        /// Send Callback
+        /// </summary>
+        /// <param name="ar"></param>
+        private static void SendCallback(IAsyncResult ar)
+        {
+            try
             {
-                Console.WriteLine("SocketException " + socketException.ToString());
+                // Retrieve the socket from the state object
+                Socket handler = (Socket)ar.AsyncState;
+
+                // Complete sending the data to the remote device
+                int bytesSent = handler.EndSend(ar);
+                Console.WriteLine("Sent {0} bytes to client.", bytesSent);
+
+                handler.Shutdown(SocketShutdown.Both);
+                handler.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.ToString());
             }
         }
 
@@ -230,51 +315,40 @@ namespace _780200XXC00
             string processingBufferJobDir = ProcessingBufferDirectory + @"\" + job;
 
             // Copy .mat files to the job directory
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step1.mat", processingBufferJobDir);
+            Console.WriteLine("Copying .mat files...");
+            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step1.mat", processingBufferJobDir + @"\" + job + "_step1.mat");
             Thread.Sleep(1000);
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step2.mat", processingBufferJobDir);
+            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step2.mat", processingBufferJobDir + @"\" + job + "_step2.mat");
             Thread.Sleep(1000);
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step3.mat", processingBufferJobDir);
+            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step3.mat", processingBufferJobDir + @"\" + job + "_step3.mat");
             Thread.Sleep(1000);
 
             // Copy EEPROM varables file to the job directory
-            FileHandling.CopyFile(testPassDirectory + "EEPROM_variables_" + job + ".mat", processingBufferJobDir);
+            Console.WriteLine("Copying EEPROM_variables file...");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + job + ".mat", processingBufferJobDir + @"\" + "EEPROM_variables_" + job + ".mat");
             Thread.Sleep(1000);
 
             // Copy the .tab files to the job directory
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "CAP.tab", processingBufferJobDir);
+            Console.WriteLine("Copying CAP.tab file...");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", processingBufferJobDir + @"\" + "CAP.tab");
             Thread.Sleep(1000);
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "TUNE.tab", processingBufferJobDir);
 
+            Console.WriteLine("Copying CAP.tab file...");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", processingBufferJobDir + @"\" + "TUNE.tab");
             Thread.Sleep(2000);
 
             // Copy the data.xml without the OverallResult field
-            FileHandling.CopyFile(testNoneDirectory + @"\" + job + "Data.xml", processingBufferJobDir);
-
+            FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
             Thread.Sleep(5000);
 
             // Copy the data.xml with the OverallResult field
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "Data.xml", processingBufferJobDir);
+            FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
         }
 
-        static void Main(string[] args)
+        public static int Main(String[] args)
         {
-            // Get the raw parameter strings skipping the arg parameters and dash
-            string processingBufferDirectoryArg = args[1]; // -d C:\SSMCharacterizationHandler\ProcessingBuffer\1185840_202003250942
-            string portArg = args[3];  // -s 3000
-            string cpuCores = args[5];  // -p 4
-
-            Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
-            ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.LastIndexOf("\\"));
-            Port = int.Parse(portArg);
-            CpuCores = int.Parse(cpuCores);
-
-            // Start the TCP/IP receive listening method
             StartListening();
-
-            Console.WriteLine("Press the Enter key to exit the application...\n");
-            Console.ReadLine();
+            return 0;
         }
     }
 }
-

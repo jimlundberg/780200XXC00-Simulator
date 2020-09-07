@@ -249,33 +249,33 @@ namespace _780200XXC00
             string processingBufferJobDir = ProcessingBufferDirectory + @"\" + job;
 
             // Copy .mat files to the job directory
-            Console.WriteLine("Copying .mat files...");
+            Console.WriteLine("\nCopying .mat files...");
             FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step1.mat", processingBufferJobDir + @"\" + job + "_step1.mat");
-            Thread.Sleep(1000);
             FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step2.mat", processingBufferJobDir + @"\" + job + "_step2.mat");
-            Thread.Sleep(1000);
             FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step3.mat", processingBufferJobDir + @"\" + job + "_step3.mat");
             Thread.Sleep(1000);
 
             // Copy EEPROM varables file to the job directory
-            Console.WriteLine("Copying EEPROM_variables file...");
+            Console.WriteLine("\nCopying EEPROM_variables file...");
             FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + job + ".mat", processingBufferJobDir + @"\" + "EEPROM_variables_" + job + ".mat");
             Thread.Sleep(1000);
 
             // Copy the .tab files to the job directory
-            Console.WriteLine("Copying CAP.tab file...");
+            Console.WriteLine("\nCopying CAP.tab file...");
             FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", processingBufferJobDir + @"\" + "CAP.tab");
             Thread.Sleep(1000);
 
-            Console.WriteLine("Copying CAP.tab file...");
+            Console.WriteLine("\nCopying CAP.tab file...");
             FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", processingBufferJobDir + @"\" + "TUNE.tab");
-            Thread.Sleep(2000);
+            Thread.Sleep(1000);
 
             // Copy the data.xml without the OverallResult field
+            Console.WriteLine("\nCopying Data.xml without OverallResult...");
             FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
-            Thread.Sleep(5000);
+            Thread.Sleep(1000);
 
             // Copy the data.xml with the OverallResult field
+            Console.WriteLine("\nCopying Data.xml with the OverallResult...");
             FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
         }
 

@@ -302,9 +302,6 @@ namespace _780200XXC00
 
             // Start the TCP/IP receive listening method
             StartListening();
-
-            Console.WriteLine("\nPress the Enter key to exit the application...");
-            Console.ReadLine();
         }
     }
 }

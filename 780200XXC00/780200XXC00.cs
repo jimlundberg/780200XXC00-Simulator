@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Threading;
 
 namespace _780200XXC00
@@ -285,10 +286,11 @@ namespace _780200XXC00
         static void Main(string[] args)
         {
             // Get the raw parameter strings skipping the arg parameters and dash
-            string executableDirectory = Environment.CurrentDirectory + "\\" + Process.GetCurrentProcess().ProcessName;
-            string processingBufferDirectoryArg = args[1]; // -d C:\SSMCharacterizationHandler\ProcessingBuffer\1185840_202003250942
-            string portArg = args[3];  // -s 3000
-            string cpuCores = args[5];  // -p 4
+            string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string executableFullName = executableDirectory + @"\" + Path.GetFileName(Process.GetCurrentProcess().MainModule.FileName);
+            string processingBufferDirectoryArg = args[1];
+            string portArg = args[3];
+            string cpuCores = args[5];
 
             ExecutableDirectory = executableDirectory;
             Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
@@ -296,7 +298,7 @@ namespace _780200XXC00
             Port = int.Parse(portArg);
             CpuCores = int.Parse(cpuCores);
 
-            Console.WriteLine("{0} -d {1} -s {2} -p {3}", ExecutableDirectory, ProcessingBufferDirectory, Port, CpuCores);
+            Console.WriteLine("{0} -d {1} -s {2} -p {3}", executableFullName, ProcessingBufferDirectory, Port, CpuCores);
 
             // Start the TCP/IP receive listening method
             StartListening();

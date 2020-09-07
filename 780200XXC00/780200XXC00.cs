@@ -143,13 +143,12 @@ namespace _780200XXC00
         private static void ListenForIncommingRequests()
         {
             string testDirectoryStartDir = TestDirectory + @"\" + Job + " - Start";
-            string processingBufferJobDir = ProcessingBufferDirectory + @"\" + Job;
 
             Console.WriteLine("\n780200XXC00 Simulator Started...\n");
 
             // Copy the starting data.xml file to the job Processing Buffer directory
             Thread.Sleep(5000);
-            FileHandling.CopyFile(testDirectoryStartDir + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
+            FileHandling.CopyFile(testDirectoryStartDir + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
 
             TcpListener tcpListener = null;
             // TcpListener server = new TcpListener(port);
@@ -247,39 +246,32 @@ namespace _780200XXC00
         public static void RunModelerSimulationFinish(string job)
         {
             string testDirectory = @"C:\SSMCharacterizationHandler\test";
-            string testNoneDirectory = testDirectory + @"\" + job + " - None";
             string testPassDirectory = testDirectory + @"\" + job + " - Pass";
-            string processingBufferJobDir = ProcessingBufferDirectory + @"\" + job;
 
             // Copy .mat files to the job directory
             Console.WriteLine("\nCopying .mat files...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step1.mat", processingBufferJobDir + @"\" + job + "_step1.mat");
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step2.mat", processingBufferJobDir + @"\" + job + "_step2.mat");
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step3.mat", processingBufferJobDir + @"\" + job + "_step3.mat");
+            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step1.mat", ProcessingBufferDirectory + @"\" + job + "_step1.mat");
+            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step2.mat", ProcessingBufferDirectory + @"\" + job + "_step2.mat");
+            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step3.mat", ProcessingBufferDirectory + @"\" + job + "_step3.mat");
             Thread.Sleep(1000);
 
             // Copy EEPROM varables file to the job directory
             Console.WriteLine("\nCopying EEPROM_variables file...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + job + ".mat", processingBufferJobDir + @"\" + "EEPROM_variables_" + job + ".mat");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + job + ".mat", ProcessingBufferDirectory + @"\" + "EEPROM_variables_" + job + ".mat");
             Thread.Sleep(1000);
 
             // Copy the .tab files to the job directory
             Console.WriteLine("\nCopying CAP.tab file...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", processingBufferJobDir + @"\" + "CAP.tab");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", ProcessingBufferDirectory + @"\" + "CAP.tab");
             Thread.Sleep(1000);
 
             Console.WriteLine("\nCopying CAP.tab file...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", processingBufferJobDir + @"\" + "TUNE.tab");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", ProcessingBufferDirectory + @"\" + "TUNE.tab");
             Thread.Sleep(1000);
-
-            // Copy the data.xml without the OverallResult field
-            //Console.WriteLine("\nCopying Data.xml without OverallResult...");
-            //FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
-            //Thread.Sleep(1000);
 
             // Copy the data.xml with the OverallResult field
             Console.WriteLine("\nCopying Data.xml with the OverallResult...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
+            FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
         }
 
         /// <summary>

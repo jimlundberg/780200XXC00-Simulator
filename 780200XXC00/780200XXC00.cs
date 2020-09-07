@@ -2,7 +2,6 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 
 namespace _780200XXC00
@@ -134,173 +133,126 @@ namespace _780200XXC00
         }
     }
 
-    /// <summary>
-    /// State object for reading client data asynchronously 
-    /// </summary>
-    public class StateObject
+    class Program
     {
-        // Size of receive buffer.  
-        public const int BufferSize = 1024;
-
-        // Receive buffer.  
-        public byte[] buffer = new byte[BufferSize];
-
-        // Received data string.
-        public StringBuilder sb = new StringBuilder();
-
-        // Client socket.
-        public Socket workSocket = null;
-    }
-
-    /// <summary>
-    /// AsynchronousSocketListener class
-    /// </summary>
-    public class AsynchronousSocketListener
-    {
-        public static ManualResetEvent allDone = new ManualResetEvent(false); // Thread signal
+        public static Thread tcpListenerThread;
+        private static string Job = "1185840_202003250942";
         private static string ProcessingBufferDirectory = @"C:\SSMCharacterizationHandler\ProcessingBuffer";
-        //private static string Job = "1185840_202003250942";
-        //private static string Server = "127.0.0.1";
-        //private static int Port = 3000;
-        //private static int CpuCores = 4;
+        private static string Server = "127.0.0.1";
+        private static int Port = 3000;
+        private static int CpuCores = 4;
 
-        /// <summary>
-        /// AsynchronousSocketListener default constructor
-        /// </summary>
-        public AsynchronousSocketListener() { }
-
-        /// <summary>
-        /// Start Listening to TCP/IP
-        /// </summary>
         public static void StartListening()
         {
-            // Establish the local endpoint for the socket
-            IPHostEntry ipHostInfo = Dns.GetHostEntry(Dns.GetHostName());
-            IPAddress ipAddress = ipHostInfo.AddressList[0];
-            IPEndPoint localEndPoint = new IPEndPoint(ipAddress, 11000);
+            // Start TcpServer background thread        
+            tcpListenerThread = new Thread(new ThreadStart(ListenForIncommingRequests))
+            {
+                IsBackground = true
+            };
+            tcpListenerThread.Start();
+        }
 
-            // Create a TCP/IP socket
-            Socket listener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+        private static void ListenForIncommingRequests()
+        {
+            string job = "1185840_202003250942";
+            string testDirectory = @"C:\SSMCharacterizationHandler\test";
+            string processingBufferJobDir = ProcessingBufferDirectory + @"\" + job;
 
-            // Bind the socket to the local endpoint and listen for incoming connections
+            Console.WriteLine("\n780200XXC00 Simulator Started...");
+
+            TcpListener tcpListener = null;
             try
             {
-                listener.Bind(localEndPoint);
-                listener.Listen(100);
+                // TcpListener server = new TcpListener(port);
+                tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
 
-                while (true)
+                // Start listening for client requests
+                tcpListener.Start();
+
+                // Buffer for reading data
+                Byte[] bytes = new Byte[256];
+                String clientMessage = null;
+
+                // Enter the listening loop.
+                Console.Write("\nWaiting for a connection...\n");
+
+                // Perform a blocking call to accept requests.
+                // You could also use server.AcceptSocket() here
+                TcpClient client = tcpListener.AcceptTcpClient();
+                Console.WriteLine("Connected!");
+
+                // Get a stream object for reading and writing
+                NetworkStream stream = client.GetStream();
+
+                // Loop to receive all the data sent by the client
+                int i = 0;
+                int stepIndex = 1;
+                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                 {
-                    // Set the event to nonsignaled state
-                    allDone.Reset();
+                    // Translate data bytes to a ASCII string
+                    clientMessage = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                    Console.WriteLine("Received: status");
 
-                    // Start an asynchronous socket to listen for connections
-                    Console.WriteLine("Waiting for a connection...");
-                    listener.BeginAccept(new AsyncCallback(AcceptCallback), listener);
+                    //if (clientMessage == "status")
+                    {
+                        if (stepIndex == 1)
+                        {
+                            Thread.Sleep(1000);
 
-                    // Wait until a connection is made before continuing
-                    allDone.WaitOne();
+                            // Copy the starting data.xml file to the job
+                            FileHandling.CopyFile(testDirectory + @"\" + job + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
+                        }
+
+                        if (stepIndex < 7)
+                        {
+                            Thread.Sleep(1000);
+
+                            string responseMsg = String.Format("Step {0} in process.", stepIndex++);
+
+                            // Translate the passed message into ASCII and store it as a Byte array
+                            Byte[] responseData = System.Text.Encoding.ASCII.GetBytes(responseMsg);
+
+                            // Send the message to the connected TcpServer
+                            stream.Write(responseData, 0, responseData.Length);
+
+                            Console.WriteLine(String.Format("Sent {0}", responseMsg));
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+
+                            // Send complete message
+                            string finalResponse = "Whole process done, socket closed.";
+
+                            // Translate the passed message into ASCII and store it as a Byte array
+                            Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
+
+                            // Send the message to the connected TcpServer
+                            stream.Write(finalResponseData, 0, finalResponseData.Length);
+
+                            Console.WriteLine(String.Format("Sent {0}", finalResponse));
+                        }
+                    }
+
+                    // Now run the Modeler job Finish
+                    RunModelerSimulationFinish(job);
+
+                    // Shutdown and end connection
+                    client.Close();
                 }
-
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
-                Console.WriteLine(e.ToString());
+                Console.WriteLine("SocketException: {0}", e);
+            }
+            finally
+            {
+                // Stop listening for new clients.
+                tcpListener.Stop();
             }
 
-            Console.WriteLine("\nPress ENTER to continue...");
+            Console.WriteLine("\nHit enter to continue...");
             Console.Read();
-        }
-
-        /// <summary>
-        /// Accept TCP/IP Callback
-        /// </summary>
-        /// <param name="ar"></param>
-        public static void AcceptCallback(IAsyncResult ar)
-        {
-            // Signal the main thread to continue
-            allDone.Set();
-
-            // Get the socket that handles the client request
-            Socket listener = (Socket)ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
-
-            // Create the state object
-            StateObject state = new StateObject();
-            state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReadCallback), state);
-        }
-
-        /// <summary>
-        /// Read Callback
-        /// </summary>
-        /// <param name="ar"></param>
-        public static void ReadCallback(IAsyncResult ar)
-        {
-            String content = String.Empty;
-
-            // Retrieve state object and handler socket from the asynchronous state object
-            StateObject state = (StateObject)ar.AsyncState;
-            Socket handler = state.workSocket;
-
-            // Read data from the client socket
-            int bytesRead = handler.EndReceive(ar);
-
-            if (bytesRead > 0)
-            {
-                // There  might be more data, so store the data received so far
-                state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
-
-                // Check for end-of-file tag. If it is not there, read more data
-                content = state.sb.ToString();
-                if (content.IndexOf("<EOF>") > -1)
-                {
-                    // All the data has been read from the client so display it on the console
-                    Console.WriteLine("Read {0} bytes from socket. \n Data : {1}", content.Length, content);
-
-                    // Echo the data back to the client
-                    Send(handler, content);
-                }
-                else
-                {
-                    // Not all data received. Get more
-                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                        new AsyncCallback(ReadCallback), state);
-                }
-            }
-        }
-
-        private static void Send(Socket handler, String data)
-        {
-            // Convert the string data to byte data using ASCII encoding
-            byte[] byteData = Encoding.ASCII.GetBytes(data);
-
-            // Begin sending the data to the remote device
-            handler.BeginSend(byteData, 0, byteData.Length, 0, new AsyncCallback(SendCallback), handler);
-        }
-
-        /// <summary>
-        /// Send Callback
-        /// </summary>
-        /// <param name="ar"></param>
-        private static void SendCallback(IAsyncResult ar)
-        {
-            try
-            {
-                // Retrieve the socket from the state object
-                Socket handler = (Socket)ar.AsyncState;
-
-                // Complete sending the data to the remote device
-                int bytesSent = handler.EndSend(ar);
-                Console.WriteLine("Sent {0} bytes to client.", bytesSent);
-
-                handler.Shutdown(SocketShutdown.Both);
-                handler.Close();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.ToString());
-            }
         }
 
         /// <summary>
@@ -345,10 +297,24 @@ namespace _780200XXC00
             FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
         }
 
-        public static int Main(String[] args)
+        static void Main(string[] args)
         {
+            // Get the raw parameter strings skipping the arg parameters and dash
+            string processingBufferDirectoryArg = args[1]; // -d C:\SSMCharacterizationHandler\ProcessingBuffer\1185840_202003250942
+            string portArg = args[3];  // -s 3000
+            string cpuCores = args[5];  // -p 4
+
+            Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
+            ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.LastIndexOf("\\"));
+            Port = int.Parse(portArg);
+            CpuCores = int.Parse(cpuCores);
+
+            // Start the TCP/IP receive listening method
             StartListening();
-            return 0;
+
+            Console.WriteLine("\nPress the Enter key to exit the application...");
+            Console.ReadLine();
         }
     }
 }
+

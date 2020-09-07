@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -136,8 +137,10 @@ namespace _780200XXC00
     class Program
     {
         public static Thread tcpListenerThread;
-        private static string Job = "1185840_202003250942";
-        private static string ProcessingBufferDirectory = @"C:\SSMCharacterizationHandler\ProcessingBuffer";
+        private static string Job;
+        private static string ExecutableDirectory;
+        private static string ProcessingBufferDirectory;
+        private static string TestDirectory = @"C:\SSMCharacterizationHandler\test";
         private static string Server = "127.0.0.1";
         private static int Port = 3000;
         private static int CpuCores = 4;
@@ -154,105 +157,101 @@ namespace _780200XXC00
 
         private static void ListenForIncommingRequests()
         {
-            string job = "1185840_202003250942";
-            string testDirectory = @"C:\SSMCharacterizationHandler\test";
-            string processingBufferJobDir = ProcessingBufferDirectory + @"\" + job;
+            string testDirectoryStartDir = TestDirectory + @"\" + Job + " - Start";
+            string processingBufferJobDir = ProcessingBufferDirectory + @"\" + Job;
 
-            Console.WriteLine("\n780200XXC00 Simulator Started...");
+            Console.WriteLine("\n780200XXC00 Simulator Started...\n");
+
+            // Copy the starting data.xml file to the job Processing Buffer directory
+            Thread.Sleep(5000);
+            FileHandling.CopyFile(testDirectoryStartDir + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
 
             TcpListener tcpListener = null;
-            try
+            // TcpListener server = new TcpListener(port);
+            tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
+
+            // Start listening for client requests
+            tcpListener.Start();
+
+            // Buffer for reading data
+            Byte[] bytes = new Byte[256];
+            String clientMessage = null;
+
+            // Enter the listening loop
+            Console.Write("\nWaiting for a TCP/IP connection for job {0} on Port {1}...", Job, Port);
+
+            // Perform a blocking call to accept requests
+            TcpClient client = tcpListener.AcceptTcpClient();
+            Console.WriteLine("Connected!");
+
+            // Get a stream object for reading and writing
+            NetworkStream stream = client.GetStream();
+
+            // Loop to receive all the data sent by the client
+            bool simulationComplete = false;
+            do
             {
-                // TcpListener server = new TcpListener(port);
-                tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
-
-                // Start listening for client requests
-                tcpListener.Start();
-
-                // Buffer for reading data
-                Byte[] bytes = new Byte[256];
-                String clientMessage = null;
-
-                // Enter the listening loop.
-                Console.Write("\nWaiting for a connection...\n");
-
-                // Perform a blocking call to accept requests.
-                // You could also use server.AcceptSocket() here
-                TcpClient client = tcpListener.AcceptTcpClient();
-                Console.WriteLine("Connected!");
-
-                // Get a stream object for reading and writing
-                NetworkStream stream = client.GetStream();
-
-                // Loop to receive all the data sent by the client
-                int i = 0;
-                int stepIndex = 1;
-                while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
+                try
                 {
-                    // Translate data bytes to a ASCII string
-                    clientMessage = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-                    Console.WriteLine("Received: status");
-
-                    //if (clientMessage == "status")
+                    int i = 0;
+                    int stepIndex = 1;
+                    while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                     {
-                        if (stepIndex == 1)
+                        // Translate data bytes to a ASCII string
+                        clientMessage = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                        Console.WriteLine("Received: {0}", clientMessage);
+
+                        //if (clientMessage == "status")
                         {
-                            Thread.Sleep(1000);
+                            if (stepIndex < 7)
+                            {
+                                Thread.Sleep(1000);
 
-                            // Copy the starting data.xml file to the job
-                            FileHandling.CopyFile(testDirectory + @"\" + job + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
-                        }
+                                // Create the response message
+                                string responseMsg = String.Format("Step {0} in process.", stepIndex++);
+                                Byte[] responseData = System.Text.Encoding.ASCII.GetBytes(responseMsg);
 
-                        if (stepIndex < 7)
-                        {
-                            Thread.Sleep(1000);
+                                // Send the message to the connected TcpServer
+                                stream.Write(responseData, 0, responseData.Length);
 
-                            string responseMsg = String.Format("Step {0} in process.", stepIndex++);
+                                Console.WriteLine(String.Format("Sent {0}", responseMsg));
+                            }
+                            else
+                            {
+                                Thread.Sleep(1000);
 
-                            // Translate the passed message into ASCII and store it as a Byte array
-                            Byte[] responseData = System.Text.Encoding.ASCII.GetBytes(responseMsg);
+                                // Create the response message
+                                string finalResponse = "Whole process done, socket closed.";
+                                Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
 
-                            // Send the message to the connected TcpServer
-                            stream.Write(responseData, 0, responseData.Length);
+                                // Send the message to the connected TcpServer
+                                stream.Write(finalResponseData, 0, finalResponseData.Length);
 
-                            Console.WriteLine(String.Format("Sent {0}", responseMsg));
-                        }
-                        else
-                        {
-                            Thread.Sleep(1000);
+                                Console.WriteLine(String.Format("Sent {0}", finalResponse));
 
-                            // Send complete message
-                            string finalResponse = "Whole process done, socket closed.";
+                                // Wait then run the Modeler job complete copies
+                                Thread.Sleep(5000);
+                                RunModelerSimulationFinish(Job);
 
-                            // Translate the passed message into ASCII and store it as a Byte array
-                            Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
-
-                            // Send the message to the connected TcpServer
-                            stream.Write(finalResponseData, 0, finalResponseData.Length);
-
-                            Console.WriteLine(String.Format("Sent {0}", finalResponse));
+                                simulationComplete = true;
+                            }
                         }
                     }
-
-                    // Now run the Modeler job Finish
-                    RunModelerSimulationFinish(job);
-
-                    // Shutdown and end connection
-                    client.Close();
+                }
+                catch (SocketException e)
+                {
+                    Console.WriteLine("SocketException: {0}", e);
+                }
+                finally
+                {
+                    // Stop listening for new clients.
+                    tcpListener.Stop();
                 }
             }
-            catch (SocketException e)
-            {
-                Console.WriteLine("SocketException: {0}", e);
-            }
-            finally
-            {
-                // Stop listening for new clients.
-                tcpListener.Stop();
-            }
+            while (simulationComplete == false);
 
-            Console.WriteLine("\nHit enter to continue...");
-            Console.Read();
+            // Shutdown and end connection
+            client.Close();
         }
 
         /// <summary>
@@ -300,14 +299,18 @@ namespace _780200XXC00
         static void Main(string[] args)
         {
             // Get the raw parameter strings skipping the arg parameters and dash
+            string executableDirectory = Environment.CurrentDirectory + "\\" + Process.GetCurrentProcess().ProcessName;
             string processingBufferDirectoryArg = args[1]; // -d C:\SSMCharacterizationHandler\ProcessingBuffer\1185840_202003250942
             string portArg = args[3];  // -s 3000
             string cpuCores = args[5];  // -p 4
 
+            ExecutableDirectory = executableDirectory;
             Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
             ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.LastIndexOf("\\"));
             Port = int.Parse(portArg);
             CpuCores = int.Parse(cpuCores);
+
+            Console.WriteLine("{0} -d {1} -s {2} -p {3}", ExecutableDirectory, ProcessingBufferDirectory, Port, CpuCores);
 
             // Start the TCP/IP receive listening method
             StartListening();

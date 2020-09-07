@@ -165,7 +165,7 @@ namespace _780200XXC00
 
             // Perform a blocking call to accept requests
             TcpClient client = tcpListener.AcceptTcpClient();
-            Console.WriteLine("Connected!\n");
+            Console.WriteLine("Connected!");
 
             // Get a stream object for reading and writing
             NetworkStream stream = client.GetStream();
@@ -182,7 +182,7 @@ namespace _780200XXC00
                     {
                         // Translate data bytes to a ASCII string
                         clientMessage = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
-                        Console.WriteLine("Received: {0}", clientMessage);
+                        Console.WriteLine("\nReceived: {0}", clientMessage);
 
                         //if (clientMessage == "status")
                         {

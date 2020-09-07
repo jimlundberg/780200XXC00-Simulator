@@ -122,6 +122,7 @@ namespace _780200XXC00
         private static string Server = "127.0.0.1";
         private static int Port = 3000;
         private static int CpuCores = 4;
+        private static bool ExitFlag = false;
 
         /// <summary>
         /// Start Listening for TCP/IP
@@ -235,6 +236,8 @@ namespace _780200XXC00
 
             // Shutdown and end connection
             client.Close();
+
+            ExitFlag = true;
         }
 
         /// <summary>
@@ -283,7 +286,7 @@ namespace _780200XXC00
         /// Main
         /// </summary>
         /// <param name="args"></param>
-        static void Main(string[] args)
+        static int Main(string[] args)
         {
             // Get the raw parameter strings skipping the arg parameters and dash
             string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -292,16 +295,25 @@ namespace _780200XXC00
             string portArg = args[3];
             string cpuCores = args[5];
 
-            ExecutableDirectory = executableDirectory;
+            ExecutableDirectory = executableFullName;
             Job = processingBufferDirectoryArg.Substring(processingBufferDirectoryArg.LastIndexOf("\\") + 1);
-            ProcessingBufferDirectory = processingBufferDirectoryArg.Substring(0, processingBufferDirectoryArg.LastIndexOf("\\"));
+            ProcessingBufferDirectory = processingBufferDirectoryArg;
             Port = int.Parse(portArg);
             CpuCores = int.Parse(cpuCores);
 
-            Console.WriteLine("{0} -d {1} -s {2} -p {3}", executableFullName, ProcessingBufferDirectory, Port, CpuCores);
+            Console.WriteLine("{0} -d {1} -s {2} -p {3}", ExecutableDirectory, ProcessingBufferDirectory, Port, CpuCores);
 
             // Start the TCP/IP receive listening method
             StartListening();
+
+            // Wait for exit flag to be set triggering exit
+            do
+            {
+                Thread.Sleep(250);
+            }
+            while (ExitFlag == false);
+
+            return 0;
         }
     }
 }

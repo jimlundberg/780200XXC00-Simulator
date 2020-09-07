@@ -165,7 +165,7 @@ namespace _780200XXC00
 
             // Perform a blocking call to accept requests
             TcpClient client = tcpListener.AcceptTcpClient();
-            Console.WriteLine("Connected!");
+            Console.WriteLine("Connected!\n");
 
             // Get a stream object for reading and writing
             NetworkStream stream = client.GetStream();

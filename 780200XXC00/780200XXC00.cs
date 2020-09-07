@@ -211,7 +211,7 @@ namespace _780200XXC00
                         {
                             if (stepIndex < 7)
                             {
-                                Thread.Sleep(5000);
+                                Thread.Sleep(2000);
 
                                 // Create the response message
                                 string responseMsg = String.Format("Step {0} in process.", stepIndex++);
@@ -223,7 +223,7 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                Thread.Sleep(5000);
+                                Thread.Sleep(2000);
 
                                 // Create the response message
                                 string finalResponse = "Whole process done, socket closed.";

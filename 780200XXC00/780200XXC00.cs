@@ -212,7 +212,7 @@ namespace _780200XXC00
                                 stream.Write(finalResponseData, 0, finalResponseData.Length);
                                 Console.WriteLine(String.Format("Sent {0}", finalResponse));
 
-                                Thread.Sleep(5000);
+                                Thread.Sleep(1000);
 
                                 // Wait then run the Modeler job complete copies
                                 RunModelerSimulationFinish(Job);

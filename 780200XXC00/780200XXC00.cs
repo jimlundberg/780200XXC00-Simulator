@@ -286,7 +286,7 @@ namespace _780200XXC00
         /// Main
         /// </summary>
         /// <param name="args"></param>
-        static int Main(string[] args)
+        static void Main(string[] args)
         {
             // Get the raw parameter strings skipping the arg parameters and dash
             string executableDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
@@ -312,8 +312,6 @@ namespace _780200XXC00
                 Thread.Sleep(250);
             }
             while (ExitFlag == false);
-
-            return 0;
         }
     }
 }

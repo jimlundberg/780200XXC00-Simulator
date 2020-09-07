@@ -270,9 +270,9 @@ namespace _780200XXC00
             Thread.Sleep(1000);
 
             // Copy the data.xml without the OverallResult field
-            Console.WriteLine("\nCopying Data.xml without OverallResult...");
-            FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
-            Thread.Sleep(1000);
+            //Console.WriteLine("\nCopying Data.xml without OverallResult...");
+            //FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
+            //Thread.Sleep(1000);
 
             // Copy the data.xml with the OverallResult field
             Console.WriteLine("\nCopying Data.xml with the OverallResult...");

@@ -183,8 +183,8 @@ namespace _780200XXC00
             Byte[] bytes = new Byte[256];
             String clientMessage;
 
-            // Enter the listening loop
-            Console.Write("\nWaiting for a TCP/IP connection for job {0} on Port {1}...", Job, Port);
+            // Enter the TCP/IP listening loop
+            Console.Write("\nWaiting for a TCP/IP Connection for job {0} on Port {1}...", Job, Port);
 
             // Perform a blocking call to accept requests
             TcpClient client = tcpListener.AcceptTcpClient();

@@ -12,8 +12,6 @@ namespace _780200XXC00
     /// </summary>
     public class FileHandling
     {
-        private static readonly Object FileLock = new Object();
-
         /// <summary>
         /// CopyFolderContents - Copy files and folders from source to destination and optionally remove source files/folders
         /// </summary>
@@ -47,10 +45,7 @@ namespace _780200XXC00
                 // Delete the destination file if overwrite is true
                 if (destFile.Exists && overwrite)
                 {
-                    lock (FileLock)
-                    {
-                        destFile.Delete();
-                    }
+                    destFile.Delete();
                 }
 
                 sourceFile.CopyTo(Path.Combine(destinationDI.FullName, sourceFile.Name));
@@ -58,20 +53,14 @@ namespace _780200XXC00
                 // Delete the source file if removeSource is true
                 if (removeSource)
                 {
-                    lock (FileLock)
-                    {
-                        sourceFile.Delete();
-                    }
+                    sourceFile.Delete();
                 }
             }
 
             // Delete the source directory if removeSource is true
             if (removeSource)
             {
-                lock (FileLock)
-                {
-                    sourceDI.Delete();
-                }
+                sourceDI.Delete();
             }
         }
 
@@ -92,17 +81,11 @@ namespace _780200XXC00
             if (Target.Exists)
             {
                 // Delete the Target file first
-                lock (FileLock)
-                {
-                    Target.Delete();
-                }
+                Target.Delete();
             }
 
             // Copy to target file
-            lock (FileLock)
-            {
-                Source.CopyTo(targetFile);
-            }
+            Source.CopyTo(targetFile);
 
             Console.WriteLine(String.Format("Copied {0} -> {1}", sourceFile, targetFile));
         }
@@ -117,18 +100,12 @@ namespace _780200XXC00
             string[] files = Directory.GetFiles(targetDirectory);
             foreach (string file in files)
             {
-                lock (FileLock)
-                {
-                    File.SetAttributes(file, FileAttributes.Normal);
-                    File.Delete(file);
-                }
+                File.SetAttributes(file, FileAttributes.Normal);
+                File.Delete(file);
             }
 
-            lock (FileLock)
-            {
-                // Then delete the directory
-                Directory.Delete(targetDirectory, false);
-            }
+            // Then delete the directory
+            Directory.Delete(targetDirectory, false);
 
             Console.WriteLine(String.Format("Deleted Directory {0}", targetDirectory));
         }

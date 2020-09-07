@@ -145,6 +145,9 @@ namespace _780200XXC00
         private static int Port = 3000;
         private static int CpuCores = 4;
 
+        /// <summary>
+        /// Start Listening for TCP/IP
+        /// </summary>
         public static void StartListening()
         {
             // Start TcpServer background thread        
@@ -155,6 +158,9 @@ namespace _780200XXC00
             tcpListenerThread.Start();
         }
 
+        /// <summary>
+        /// Listen for Incoming TCP/IP requests
+        /// </summary>
         private static void ListenForIncommingRequests()
         {
             string testDirectoryStartDir = TestDirectory + @"\" + Job + " - Start";
@@ -175,7 +181,7 @@ namespace _780200XXC00
 
             // Buffer for reading data
             Byte[] bytes = new Byte[256];
-            String clientMessage = null;
+            String clientMessage;
 
             // Enter the listening loop
             Console.Write("\nWaiting for a TCP/IP connection for job {0} on Port {1}...", Job, Port);
@@ -205,7 +211,7 @@ namespace _780200XXC00
                         {
                             if (stepIndex < 7)
                             {
-                                Thread.Sleep(1000);
+                                Thread.Sleep(5000);
 
                                 // Create the response message
                                 string responseMsg = String.Format("Step {0} in process.", stepIndex++);
@@ -213,12 +219,11 @@ namespace _780200XXC00
 
                                 // Send the message to the connected TcpServer
                                 stream.Write(responseData, 0, responseData.Length);
-
                                 Console.WriteLine(String.Format("Sent {0}", responseMsg));
                             }
                             else
                             {
-                                Thread.Sleep(1000);
+                                Thread.Sleep(5000);
 
                                 // Create the response message
                                 string finalResponse = "Whole process done, socket closed.";
@@ -226,11 +231,11 @@ namespace _780200XXC00
 
                                 // Send the message to the connected TcpServer
                                 stream.Write(finalResponseData, 0, finalResponseData.Length);
-
                                 Console.WriteLine(String.Format("Sent {0}", finalResponse));
 
-                                // Wait then run the Modeler job complete copies
                                 Thread.Sleep(5000);
+
+                                // Wait then run the Modeler job complete copies
                                 RunModelerSimulationFinish(Job);
 
                                 simulationComplete = true;
@@ -296,6 +301,10 @@ namespace _780200XXC00
             FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", processingBufferJobDir + @"\" + "Data.xml");
         }
 
+        /// <summary>
+        /// Main
+        /// </summary>
+        /// <param name="args"></param>
         static void Main(string[] args)
         {
             // Get the raw parameter strings skipping the arg parameters and dash

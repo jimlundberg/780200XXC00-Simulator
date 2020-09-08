@@ -166,7 +166,7 @@ namespace _780200XXC00
 
             // Perform a blocking call to accept requests
             TcpClient client = tcpListener.AcceptTcpClient();
-            Console.WriteLine("Connected!");
+            Console.WriteLine("Connected!\n");
 
             // Get a stream object for reading and writing
             NetworkStream stream = client.GetStream();
@@ -187,11 +187,11 @@ namespace _780200XXC00
 
                         if (clientMessage == "status")
                         {
+                            Thread.Sleep(1000);
+
                             if (stepIndex < 7)
                             {
-                                Thread.Sleep(1000);
-
-                                // Create the response message
+                                // Create the step response message
                                 string responseMsg = String.Format("Step {0} in process.", stepIndex++);
                                 Byte[] responseData = System.Text.Encoding.ASCII.GetBytes(responseMsg);
 
@@ -201,9 +201,7 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                Thread.Sleep(1000);
-
-                                // Create the response message
+                                // Create the final response message
                                 string finalResponse = "Whole process done, socket closed.";
                                 Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
 

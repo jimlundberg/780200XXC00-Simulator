@@ -4,10 +4,26 @@ using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 namespace _780200XXC00
 {
+    /// <summary>
+    /// Modeler Step State enum
+    /// </summary>
+    public enum ModelerStepState
+    {
+        NONE,
+        STEP_1,
+        STEP_2,
+        STEP_3,
+        STEP_4,
+        STEP_5,
+        STEP_6,
+        STEP_COMPLETE
+    };
+
     /// <summary>
     /// Class for file copy, move and delete handling
     /// </summary>
@@ -143,6 +159,10 @@ namespace _780200XXC00
         private static void ListenForIncommingRequests()
         {
             string testDirectoryStartDir = TestDirectory + @"\" + Job + " - Start";
+            string testDirectory = @"C:\SSMCharacterizationHandler\test";
+            string testPassDirectory = testDirectory + @"\" + Job + " - Pass";
+            string testFailDirectory = testDirectory + @"\" + Job + " - Fail";
+            string testNoneDirectory = testDirectory + @"\" + Job + " - None";
 
             Console.WriteLine("\n780200XXC00 Simulator Started...\n");
 
@@ -178,7 +198,7 @@ namespace _780200XXC00
                 try
                 {
                     int i = 0;
-                    int stepIndex = 1;
+                    ModelerStepState modelerStepState = ModelerStepState.NONE;
                     while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                     {
                         // Translate data bytes to a ASCII string
@@ -189,30 +209,78 @@ namespace _780200XXC00
                         {
                             Thread.Sleep(1000);
 
-                            if (stepIndex < 7)
+                            string responseMsg = String.Empty;
+                            switch (modelerStepState)
                             {
-                                // Create the step response message
-                                string responseMsg = String.Format("Step {0} in process.", stepIndex++);
-                                Byte[] responseData = System.Text.Encoding.ASCII.GetBytes(responseMsg);
+                                case ModelerStepState.NONE:
+                                    modelerStepState = ModelerStepState.STEP_1;
+                                    break;
 
-                                // Send the message to the connected TcpServer
-                                stream.Write(responseData, 0, responseData.Length);
-                                Console.WriteLine(String.Format("Sent {0}", responseMsg));
+                                case ModelerStepState.STEP_1:
+                                    modelerStepState = ModelerStepState.STEP_2;
+                                    break;
+
+                                case ModelerStepState.STEP_2:
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + Job + "_step1.mat", ProcessingBufferDirectory + @"\" + Job + "_step1.mat");
+                                    modelerStepState = ModelerStepState.STEP_3;
+                                    break;
+
+                                case ModelerStepState.STEP_3:
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + Job + "_step1.mat", ProcessingBufferDirectory + @"\" + Job + "_step2.mat");
+                                    modelerStepState = ModelerStepState.STEP_4;
+                                    break;
+
+                                case ModelerStepState.STEP_4:
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + Job + "_step1.mat", ProcessingBufferDirectory + @"\" + Job + "_step3.mat");
+                                    modelerStepState = ModelerStepState.STEP_5;
+                                    break;
+
+                                case ModelerStepState.STEP_5:
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + Job + ".mat", ProcessingBufferDirectory + @"\" + "EEPROM_variables_" + Job + ".mat");
+                                    modelerStepState = ModelerStepState.STEP_6;
+                                    break;
+
+                                case ModelerStepState.STEP_6:
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", ProcessingBufferDirectory + @"\" + "CAP.tab");
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", ProcessingBufferDirectory + @"\" + "TUNE.tab");
+                                    modelerStepState = ModelerStepState.STEP_COMPLETE;
+                                    break;
+
+                                case ModelerStepState.STEP_COMPLETE:
+                                    FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                    break;
+                            }
+
+                            // Create the step response message
+                            if (modelerStepState != ModelerStepState.STEP_COMPLETE)
+                            {
+                                responseMsg = String.Format("Step {0} in process.", (int)modelerStepState);
                             }
                             else
                             {
-                                // Create the final response message
-                                string finalResponse = "Whole process done, socket closed.";
-                                Byte[] finalResponseData = System.Text.Encoding.ASCII.GetBytes(finalResponse);
+                                responseMsg = "Whole process done, socket closed.";
+                            }
 
-                                // Send the message to the connected TcpServer
-                                stream.Write(finalResponseData, 0, finalResponseData.Length);
-                                Console.WriteLine(String.Format("Sent {0}", finalResponse));
+                            // Send the message to the connected TcpServer
+                            Byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
+                            stream.Write(responseData, 0, responseData.Length);
+                            Console.WriteLine(String.Format("Sent {0}", responseMsg));
 
-                                Thread.Sleep(1000);
+                            if (modelerStepState != ModelerStepState.STEP_COMPLETE)
+                            {
+                                Thread.Sleep(5000);
 
-                                // Wait then run the Modeler job complete copies
-                                RunModelerSimulationFinish(Job);
+                                // Randomly copy over the data.xml with Pass or Fail
+                                Random rand = new Random();
+                                int passFail = rand.Next(0, 1);
+                                if (passFail == 1)
+                                {
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                }
+                                else
+                                {
+                                    FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                }
 
                                 simulationComplete = true;
                             }
@@ -235,41 +303,6 @@ namespace _780200XXC00
             client.Close();
 
             ExitFlag = true;
-        }
-
-        /// <summary>
-        /// Run the Modeler Simuation handling
-        /// </summary>
-        /// <param name="job"></param>
-        public static void RunModelerSimulationFinish(string job)
-        {
-            string testDirectory = @"C:\SSMCharacterizationHandler\test";
-            string testPassDirectory = testDirectory + @"\" + job + " - Pass";
-
-            // Copy .mat files to the job directory
-            Console.WriteLine("\nCopying .mat files...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step1.mat", ProcessingBufferDirectory + @"\" + job + "_step1.mat");
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step2.mat", ProcessingBufferDirectory + @"\" + job + "_step2.mat");
-            FileHandling.CopyFile(testPassDirectory + @"\" + job + "_step3.mat", ProcessingBufferDirectory + @"\" + job + "_step3.mat");
-            Thread.Sleep(1000);
-
-            // Copy EEPROM varables file to the job directory
-            Console.WriteLine("\nCopying EEPROM_variables file...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + job + ".mat", ProcessingBufferDirectory + @"\" + "EEPROM_variables_" + job + ".mat");
-            Thread.Sleep(1000);
-
-            // Copy the .tab files to the job directory
-            Console.WriteLine("\nCopying CAP.tab file...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", ProcessingBufferDirectory + @"\" + "CAP.tab");
-            Thread.Sleep(1000);
-
-            Console.WriteLine("\nCopying CAP.tab file...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", ProcessingBufferDirectory + @"\" + "TUNE.tab");
-            Thread.Sleep(1000);
-
-            // Copy the data.xml with the OverallResult field
-            Console.WriteLine("\nCopying Data.xml with the OverallResult...");
-            FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
         }
 
         /// <summary>

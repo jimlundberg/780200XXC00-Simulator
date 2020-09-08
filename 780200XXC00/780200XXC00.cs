@@ -266,7 +266,7 @@ namespace _780200XXC00
                             stream.Write(responseData, 0, responseData.Length);
                             Console.WriteLine(String.Format("Sent {0}", responseMsg));
 
-                            if (modelerStepState != ModelerStepState.STEP_COMPLETE)
+                            if (modelerStepState == ModelerStepState.STEP_COMPLETE)
                             {
                                 // Simulate real opertion where it kinda waits to deposit this file with the Pass/Fail field
                                 Thread.Sleep(5000);

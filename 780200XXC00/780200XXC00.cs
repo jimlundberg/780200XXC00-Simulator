@@ -268,6 +268,7 @@ namespace _780200XXC00
 
                             if (modelerStepState != ModelerStepState.STEP_COMPLETE)
                             {
+                                // Simulate real opertion where it kinda waits to deposit this file with the Pass/Fail field
                                 Thread.Sleep(5000);
 
                                 // Randomly copy over the data.xml with Pass or Fail

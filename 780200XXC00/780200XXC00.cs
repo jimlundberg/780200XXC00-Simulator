@@ -264,7 +264,7 @@ namespace _780200XXC00
                             // Send the message to the connected TcpServer
                             Byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
                             stream.Write(responseData, 0, responseData.Length);
-                            Console.WriteLine(String.Format("Sent {0}", responseMsg));
+                            Console.WriteLine(String.Format("Sent: {0}", responseMsg));
 
                             if (modelerStepState == ModelerStepState.STEP_COMPLETE)
                             {

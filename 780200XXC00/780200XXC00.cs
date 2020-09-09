@@ -273,7 +273,7 @@ namespace _780200XXC00
 
                                 // Randomly copy over the data.xml with Pass or Fail
                                 Random rand = new Random();
-                                int passFail = rand.Next(0, 1);
+                                int passFail = rand.Next(0, 2);
                                 if (passFail == 1)
                                 {
                                     FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");

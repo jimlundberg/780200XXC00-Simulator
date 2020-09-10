@@ -268,7 +268,7 @@ namespace _780200XXC00
 
                             if (modelerStepState == ModelerStepState.STEP_COMPLETE)
                             {
-                                // Simulate real opertion where it kinda waits to deposit this file with the Pass/Fail field
+                                // Simulate real opertion where it kinda waits to deposit this file with the OverallResult field after TCP/IP is done
                                 Thread.Sleep(5000);
 
                                 // Randomly copy over the data.xml with Pass or Fail
@@ -294,7 +294,7 @@ namespace _780200XXC00
                 }
                 finally
                 {
-                    // Stop listening for new clients.
+                    // Stop listening for new clients
                     tcpListener.Stop();
                 }
             }

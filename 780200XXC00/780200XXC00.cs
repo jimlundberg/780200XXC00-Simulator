@@ -258,7 +258,17 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                responseMsg = "Whole process done, socket closed.";
+                                Random rand = new Random();
+                                int passFail = rand.Next(0, 3);
+                                if (passFail == 1)
+                                {
+                                    responseMsg = "Whole process done, socket closed.";
+                                }
+                                else
+                                {
+                                    // Sometimes the modeler gives this combined message for the final message
+                                    responseMsg = "Step 1 in process. Whole process done, socket closed.";
+                                }
                             }
 
                             // Send the message to the connected TcpServer
@@ -268,7 +278,7 @@ namespace _780200XXC00
 
                             if (modelerStepState == ModelerStepState.STEP_COMPLETE)
                             {
-                                // Simulate real opertion where it kinda waits to deposit this file with the OverallResult field after TCP/IP is done
+                                // Simulate real opertion where it usually waits to deposit the data.xml file with the OverallResult field after TCP/IP is done
                                 Thread.Sleep(5000);
 
                                 // Randomly copy over the data.xml with Pass or Fail

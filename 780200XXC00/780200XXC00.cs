@@ -259,8 +259,8 @@ namespace _780200XXC00
                             else
                             {
                                 Random rand = new Random();
-                                int passFail = rand.Next(0, 3);
-                                if (passFail == 1)
+                                int weirdMessage = rand.Next(0, 3);
+                                if (weirdMessage == 1)
                                 {
                                     responseMsg = "Whole process done, socket closed.";
                                 }

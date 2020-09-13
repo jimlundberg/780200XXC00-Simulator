@@ -280,7 +280,7 @@ namespace _780200XXC00
 
                                 // Test not getting the Pass/Fail at all for 1 in 4 jobs
                                 Random setRand = new Random(DateTime.Now.Second);
-                                int setOrNot = setRand.Next(0, 5);
+                                int setOrNot = setRand.Next(0, 6);
                                 if (setOrNot != 1)
                                 {
                                     // Randomly copy over the data.xml with Pass or Fail

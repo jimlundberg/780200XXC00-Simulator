@@ -213,41 +213,42 @@ namespace _780200XXC00
                             switch (modelerStepState)
                             {
                                 case ModelerStepState.NONE:
-                                    modelerStepState = ModelerStepState.STEP_1;
+                                    modelerStepState = ModelerStepState.NONE;
                                     break;
 
                                 case ModelerStepState.STEP_1:
-                                    modelerStepState = ModelerStepState.STEP_2;
+                                    modelerStepState = ModelerStepState.STEP_1;
                                     break;
 
                                 case ModelerStepState.STEP_2:
                                     FileHandling.CopyFile(testPassDirectory + @"\" + Job + "_step1.mat", ProcessingBufferDirectory + @"\" + Job + "_step1.mat");
-                                    modelerStepState = ModelerStepState.STEP_3;
+                                    modelerStepState = ModelerStepState.STEP_2;
                                     break;
 
                                 case ModelerStepState.STEP_3:
                                     FileHandling.CopyFile(testPassDirectory + @"\" + Job + "_step1.mat", ProcessingBufferDirectory + @"\" + Job + "_step2.mat");
-                                    modelerStepState = ModelerStepState.STEP_4;
+                                    modelerStepState = ModelerStepState.STEP_3;
                                     break;
 
                                 case ModelerStepState.STEP_4:
                                     FileHandling.CopyFile(testPassDirectory + @"\" + Job + "_step1.mat", ProcessingBufferDirectory + @"\" + Job + "_step3.mat");
-                                    modelerStepState = ModelerStepState.STEP_5;
+                                    modelerStepState = ModelerStepState.STEP_4;
                                     break;
 
                                 case ModelerStepState.STEP_5:
                                     FileHandling.CopyFile(testPassDirectory + @"\" + "EEPROM_variables_" + Job + ".mat", ProcessingBufferDirectory + @"\" + "EEPROM_variables_" + Job + ".mat");
-                                    modelerStepState = ModelerStepState.STEP_6;
+                                    modelerStepState = ModelerStepState.STEP_5;
                                     break;
 
                                 case ModelerStepState.STEP_6:
                                     FileHandling.CopyFile(testPassDirectory + @"\" + "CAP.tab", ProcessingBufferDirectory + @"\" + "CAP.tab");
                                     FileHandling.CopyFile(testPassDirectory + @"\" + "TUNE.tab", ProcessingBufferDirectory + @"\" + "TUNE.tab");
-                                    modelerStepState = ModelerStepState.STEP_COMPLETE;
+                                    modelerStepState = ModelerStepState.STEP_6;
                                     break;
 
                                 case ModelerStepState.STEP_COMPLETE:
                                     FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                    modelerStepState = ModelerStepState.STEP_COMPLETE;
                                     break;
                             }
 
@@ -300,6 +301,11 @@ namespace _780200XXC00
                                 }
 
                                 simulationComplete = true;
+                            }
+                            else
+                            {
+                                // Increment Modeler step
+                                modelerStepState++;
                             }
                         }
                     }

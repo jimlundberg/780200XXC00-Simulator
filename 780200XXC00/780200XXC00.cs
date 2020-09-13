@@ -279,13 +279,13 @@ namespace _780200XXC00
                                 Thread.Sleep(5000);
 
                                 // Test not getting the Pass/Fail at all for 1 in 4 jobs
-                                Random setRand = new Random(DateTime.Now.Second);
+                                Random setRand = new Random(DateTime.Now.Millisecond);
                                 int setOrNot = setRand.Next(0, 6);
                                 if (setOrNot != 1)
                                 {
                                     // Randomly copy over the data.xml with Pass or Fail
-                                    Random passFailRand = new Random(DateTime.Now.Second);
-                                    int passFail = passFailRand.Next(0, 3);
+                                    Random passFailRand = new Random(DateTime.Now.Millisecond);
+                                    int passFail = passFailRand.Next(0, 4);
                                     if (passFail != 1)
                                     {
                                         FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");

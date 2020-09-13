@@ -198,7 +198,7 @@ namespace _780200XXC00
                 try
                 {
                     int i = 0;
-                    ModelerStepState modelerStepState = ModelerStepState.NONE;
+                    ModelerStepState modelerStepState = ModelerStepState.STEP_1;
                     while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                     {
                         // Translate data bytes to a ASCII string
@@ -212,10 +212,6 @@ namespace _780200XXC00
                             string responseMsg = String.Empty;
                             switch (modelerStepState)
                             {
-                                case ModelerStepState.NONE:
-                                    modelerStepState = ModelerStepState.NONE;
-                                    break;
-
                                 case ModelerStepState.STEP_1:
                                     modelerStepState = ModelerStepState.STEP_1;
                                     break;

@@ -281,16 +281,22 @@ namespace _780200XXC00
                                 // Simulate real opertion where it usually waits to deposit the data.xml file with the OverallResult field after TCP/IP is done
                                 Thread.Sleep(5000);
 
-                                // Randomly copy over the data.xml with Pass or Fail
-                                Random rand = new Random();
-                                int passFail = rand.Next(0, 2);
-                                if (passFail == 1)
+                                // Test not getting the Pass/Fail at all for 1 in 4 jobs
+                                Random setRand = new Random();
+                                int setOrNot = setRand.Next(0, 4);
+                                if (setOrNot != 1)
                                 {
-                                    FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                }
-                                else
-                                {
-                                    FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                    // Randomly copy over the data.xml with Pass or Fail
+                                    Random passFailRand = new Random();
+                                    int passFail = passFailRand.Next(0, 4);
+                                    if (passFail == 1)
+                                    {
+                                        FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                    }
+                                    else
+                                    {
+                                        FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                    }
                                 }
 
                                 simulationComplete = true;

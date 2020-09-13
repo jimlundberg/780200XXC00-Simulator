@@ -284,12 +284,12 @@ namespace _780200XXC00
 
                                 // Test not getting the Pass/Fail at all for 1 in 4 jobs
                                 Random setRand = new Random();
-                                int setOrNot = setRand.Next(0, 4);
+                                int setOrNot = setRand.Next(0, 5);
                                 if (setOrNot != 1)
                                 {
                                     // Randomly copy over the data.xml with Pass or Fail
                                     Random passFailRand = new Random();
-                                    int passFail = passFailRand.Next(0, 4);
+                                    int passFail = passFailRand.Next(0, 5);
                                     if (passFail != 1)
                                     {
                                         FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");

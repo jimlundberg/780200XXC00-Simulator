@@ -134,8 +134,8 @@ namespace _780200XXC00
         private static string Job;
         private static string ExecutableDirectory;
         private static string ProcessingBufferDirectory;
-        private static string TestDirectory = @"C:\SSMCharacterizationHandler\test";
-        private static string Server = "127.0.0.1";
+        private static readonly string TestDirectory = @"C:\SSMCharacterizationHandler\test";
+        private static readonly string Server = "127.0.0.1";
         private static int Port = 3000;
         private static int CpuCores = 4;
         private static bool ExitFlag = false;
@@ -170,9 +170,8 @@ namespace _780200XXC00
             Thread.Sleep(5000);
             FileHandling.CopyFile(testDirectoryStartDir + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
 
-            TcpListener tcpListener = null;
             // TcpListener server = new TcpListener(port);
-            tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
+            TcpListener tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
 
             // Start listening for client requests
             tcpListener.Start();
@@ -202,7 +201,7 @@ namespace _780200XXC00
                     while ((i = stream.Read(bytes, 0, bytes.Length)) != 0)
                     {
                         // Translate data bytes to a ASCII string
-                        clientMessage = System.Text.Encoding.ASCII.GetString(bytes, 0, i);
+                        clientMessage = Encoding.ASCII.GetString(bytes, 0, i);
                         Console.WriteLine("\nReceived: {0}", clientMessage);
 
                         if (clientMessage == "status")
@@ -255,9 +254,9 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                Random rand = new Random();
-                                int weirdMessage = rand.Next(0, 3);
-                                if (weirdMessage == 1)
+                                Random weirdRand = new Random(DateTime.Now.Millisecond);
+                                int weirdMessage = weirdRand.Next(0, 4);
+                                if (weirdMessage != 1)
                                 {
                                     responseMsg = "Whole process done, socket closed.";
                                 }

@@ -104,7 +104,7 @@ namespace _780200XXC00
             // Copy to target file
             Source.CopyTo(targetFile);
 
-            Console.WriteLine(String.Format("Copied {0} -> {1}", sourceFile, targetFile));
+            Console.WriteLine(string.Format("Copied {0} -> {1}", sourceFile, targetFile));
         }
 
         /// <summary>
@@ -124,7 +124,7 @@ namespace _780200XXC00
             // Then delete the directory
             Directory.Delete(targetDirectory, false);
 
-            Console.WriteLine(String.Format("Deleted Directory {0}", targetDirectory));
+            Console.WriteLine(string.Format("Deleted Directory {0}", targetDirectory));
         }
     }
 
@@ -177,8 +177,8 @@ namespace _780200XXC00
             tcpListener.Start();
 
             // Buffer for reading data
-            Byte[] bytes = new Byte[256];
-            String clientMessage;
+            byte[] bytes = new byte[256];
+            string clientMessage;
 
             // Enter the TCP/IP listening loop
             Console.Write("\nWaiting for a TCP/IP Connection for job {0} on Port {1}...", Job, Port);
@@ -208,7 +208,7 @@ namespace _780200XXC00
                         {
                             Thread.Sleep(1000);
 
-                            string responseMsg = String.Empty;
+                            string responseMsg = string.Empty;
                             switch (modelerStepState)
                             {
                                 case ModelerStepState.STEP_1:
@@ -250,7 +250,7 @@ namespace _780200XXC00
                             // Create the step response message
                             if (modelerStepState != ModelerStepState.STEP_COMPLETE)
                             {
-                                responseMsg = String.Format("Step {0} in process.", (int)modelerStepState);
+                                responseMsg = string.Format("Step {0} in process.", (int)modelerStepState);
                             }
                             else
                             {
@@ -268,9 +268,9 @@ namespace _780200XXC00
                             }
 
                             // Send the message to the connected TcpServer
-                            Byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
+                            byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
                             stream.Write(responseData, 0, responseData.Length);
-                            Console.WriteLine(String.Format("Sent: {0}", responseMsg));
+                            Console.WriteLine(string.Format("Sent: {0}", responseMsg));
 
                             if (modelerStepState == ModelerStepState.STEP_COMPLETE)
                             {

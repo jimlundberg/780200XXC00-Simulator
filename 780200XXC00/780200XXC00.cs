@@ -244,6 +244,7 @@ namespace _780200XXC00
                                 case ModelerStepState.STEP_COMPLETE:
                                     FileHandling.CopyFile(testNoneDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
                                     modelerStepState = ModelerStepState.STEP_COMPLETE;
+                                    Thread.Sleep(2000);
                                     break;
                             }
 
@@ -254,16 +255,23 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                Random weirdRand = new Random(DateTime.Now.Millisecond);
-                                int weirdMessage = weirdRand.Next(0, 4);
-                                if (weirdMessage != 1)
+                                // Don't send Process complete at all 1 out of 5 times
+                                Random sendOrNotRand = new Random(DateTime.Now.Millisecond);
+                                int sendMessageOrNot = sendOrNotRand.Next(0, 6);
+                                if (sendMessageOrNot != 1)
                                 {
-                                    responseMsg = "Whole process done, socket closed.";
-                                }
-                                else
-                                {
-                                    // Sometimes the modeler gives this combined message for the final message
-                                    responseMsg = "Step 1 in process. Whole process done, socket closed.";
+                                    // Send the weird message 1 out of 4 times
+                                    Random weirdRand = new Random(DateTime.Now.Millisecond);
+                                    int weirdMessage = weirdRand.Next(0, 4);
+                                    if (weirdMessage != 1)
+                                    {
+                                        responseMsg = "Whole process done, socket closed.";
+                                    }
+                                    else
+                                    {
+                                        // Sometimes the modeler gives this combined message for the final message
+                                        responseMsg = "Step 1 in process. Whole process done, socket closed.";
+                                    }
                                 }
                             }
 
@@ -275,24 +283,21 @@ namespace _780200XXC00
                             if (modelerStepState == ModelerStepState.STEP_COMPLETE)
                             {
                                 // Simulate real opertion where it usually waits to deposit the data.xml file with the OverallResult field after TCP/IP is done
-                                Thread.Sleep(5000);
-
-                                // Test not getting the Pass/Fail at all for 1 in 4 jobs
                                 Random setRand = new Random(DateTime.Now.Millisecond);
-                                int setOrNot = setRand.Next(0, 6);
-                                if (setOrNot != 1)
+                                int randomWait = setRand.Next(2000, 12000);
+                                Console.WriteLine(string.Format("Waiting to send complete data.xml for {0} msec", randomWait));
+                                Thread.Sleep(randomWait);
+
+                                // Copy over the data.xml with Pass 1 out of 4 times, or Fail for testing
+                                Random passFailRand = new Random(DateTime.Now.Millisecond);
+                                int passFail = passFailRand.Next(0, 5);
+                                if (passFail != 1)
                                 {
-                                    // Randomly copy over the data.xml with Pass or Fail
-                                    Random passFailRand = new Random(DateTime.Now.Millisecond);
-                                    int passFail = passFailRand.Next(0, 4);
-                                    if (passFail != 1)
-                                    {
-                                        FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                    }
-                                    else
-                                    {
-                                        FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                    }
+                                    FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                }
+                                else
+                                {
+                                    FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
                                 }
 
                                 simulationComplete = true;

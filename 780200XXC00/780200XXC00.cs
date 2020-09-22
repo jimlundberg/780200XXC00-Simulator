@@ -252,15 +252,23 @@ namespace _780200XXC00
                             if (modelerStepState != ModelerStepState.STEP_COMPLETE)
                             {
                                 responseMsg = string.Format("Step {0} in process.", (int)modelerStepState);
+
+                                // Send the message to the connected TcpServer
+                                byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
+                                stream.Write(responseData, 0, responseData.Length);
+                                Console.WriteLine(string.Format("Sent: {0}", responseMsg));
+
+                                // Increment Modeler step until complete
+                                modelerStepState++;
                             }
                             else
                             {
-                                // Don't send Process complete at all 1 out of 4 jobs
+                                // Don't send Process complete at all for 1 out of 5 jobs
                                 Random sendOrNotRand = new Random(DateTime.Now.Millisecond);
-                                int sendMessageOrNot = sendOrNotRand.Next(0, 5);
+                                int sendMessageOrNot = sendOrNotRand.Next(0, 6);
                                 if (sendMessageOrNot != 1)
                                 {
-                                    // Send the weird message 1 out of 4 times
+                                    // Send the weird message for 1 out of 4 times
                                     Random weirdRand = new Random(DateTime.Now.Millisecond);
                                     int weirdMessage = weirdRand.Next(0, 4);
                                     if (weirdMessage != 1)
@@ -272,40 +280,35 @@ namespace _780200XXC00
                                         // Sometimes the modeler gives this combined message for the final message
                                         responseMsg = "Step 1 in process. Whole process done, socket closed.";
                                     }
+
+                                    // Send the message to the connected TcpServer
+                                    byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
+                                    stream.Write(responseData, 0, responseData.Length);
+                                    Console.WriteLine(string.Format("Sent: {0}", responseMsg));
+
+                                    if (modelerStepState == ModelerStepState.STEP_COMPLETE)
+                                    {
+                                        // Simulate real opertion where it usually waits to deposit the data.xml file with the OverallResult field after TCP/IP is done
+                                        Random setRand = new Random(DateTime.Now.Millisecond);
+                                        int randomWait = setRand.Next(2000, 12000);
+                                        Console.WriteLine(string.Format("Waiting to send complete data.xml for {0} msec", randomWait));
+                                        Thread.Sleep(randomWait);
+
+                                        // Copy over the data.xml with Pass 1 out of 4 times, or Fail for testing
+                                        Random passFailRand = new Random(DateTime.Now.Millisecond);
+                                        int passFail = passFailRand.Next(0, 5);
+                                        if (passFail != 1)
+                                        {
+                                            FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                        }
+                                        else
+                                        {
+                                            FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
+                                        }
+
+                                        simulationComplete = true;
+                                    }
                                 }
-                            }
-
-                            // Send the message to the connected TcpServer
-                            byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
-                            stream.Write(responseData, 0, responseData.Length);
-                            Console.WriteLine(string.Format("Sent: {0}", responseMsg));
-
-                            if (modelerStepState == ModelerStepState.STEP_COMPLETE)
-                            {
-                                // Simulate real opertion where it usually waits to deposit the data.xml file with the OverallResult field after TCP/IP is done
-                                Random setRand = new Random(DateTime.Now.Millisecond);
-                                int randomWait = setRand.Next(2000, 12000);
-                                Console.WriteLine(string.Format("Waiting to send complete data.xml for {0} msec", randomWait));
-                                Thread.Sleep(randomWait);
-
-                                // Copy over the data.xml with Pass 1 out of 4 times, or Fail for testing
-                                Random passFailRand = new Random(DateTime.Now.Millisecond);
-                                int passFail = passFailRand.Next(0, 5);
-                                if (passFail != 1)
-                                {
-                                    FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                }
-                                else
-                                {
-                                    FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                }
-
-                                simulationComplete = true;
-                            }
-                            else
-                            {
-                                // Increment Modeler step
-                                modelerStepState++;
                             }
                         }
                     }

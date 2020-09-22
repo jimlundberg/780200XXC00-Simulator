@@ -255,9 +255,9 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                // Don't send Process complete at all 1 out of 5 times
+                                // Don't send Process complete at all 1 out of 4 jobs
                                 Random sendOrNotRand = new Random(DateTime.Now.Millisecond);
-                                int sendMessageOrNot = sendOrNotRand.Next(0, 6);
+                                int sendMessageOrNot = sendOrNotRand.Next(0, 5);
                                 if (sendMessageOrNot != 1)
                                 {
                                     // Send the weird message 1 out of 4 times

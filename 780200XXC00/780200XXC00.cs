@@ -158,7 +158,6 @@ namespace _780200XXC00
         /// </summary>
         private static void ListenForIncommingRequests()
         {
-            string testDirectoryStartDir = TestDirectory + @"\" + Job + " - Start";
             string testDirectory = @"C:\SSMCharacterizationHandler\test";
             string testPassDirectory = testDirectory + @"\" + Job + " - Pass";
             string testFailDirectory = testDirectory + @"\" + Job + " - Fail";
@@ -166,9 +165,8 @@ namespace _780200XXC00
 
             Console.WriteLine("\n780200XXC00 Simulator Started...\n");
 
-            // Copy the starting data.xml file to the job Processing Buffer directory
+            // Copy the starting 75300037D00.xml file to the job Processing Buffer directory
             Thread.Sleep(5000);
-            FileHandling.CopyFile(testDirectoryStartDir + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
 
             // TcpListener server = new TcpListener(port);
             TcpListener tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
@@ -265,12 +263,12 @@ namespace _780200XXC00
                             {
                                 // Don't send Process complete at all for 1 out of 5 jobs
                                 Random sendOrNotRand = new Random(DateTime.Now.Millisecond);
-                                int sendMessageOrNot = sendOrNotRand.Next(0, 6);
+                                int sendMessageOrNot = sendOrNotRand.Next(0, 7);
                                 if (sendMessageOrNot != 1)
                                 {
                                     // Send the weird message for 1 out of 4 times
                                     Random weirdRand = new Random(DateTime.Now.Millisecond);
-                                    int weirdMessage = weirdRand.Next(0, 4);
+                                    int weirdMessage = weirdRand.Next(0, 5);
                                     if (weirdMessage != 1)
                                     {
                                         responseMsg = "Whole process done, socket closed.";

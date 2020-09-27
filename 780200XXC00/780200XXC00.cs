@@ -163,10 +163,7 @@ namespace _780200XXC00
             string testFailDirectory = testDirectory + @"\" + Job + " - Fail";
             string testNoneDirectory = testDirectory + @"\" + Job + " - None";
 
-            Console.WriteLine("\n780200XXC00 Simulator Started...\n");
-
-            // Copy the starting 75300037D00.xml file to the job Processing Buffer directory
-            Thread.Sleep(5000);
+            Console.WriteLine("\n780200XXC00 Simulator Starting...");
 
             // TcpListener server = new TcpListener(port);
             TcpListener tcpListener = new TcpListener(IPAddress.Parse(Server), Port);
@@ -268,7 +265,7 @@ namespace _780200XXC00
                                 {
                                     // Send the weird message for 1 out of 4 times
                                     Random weirdRand = new Random(DateTime.Now.Millisecond);
-                                    int weirdMessage = weirdRand.Next(0, 5);
+                                    int weirdMessage = weirdRand.Next(0, 6);
                                     if (weirdMessage != 1)
                                     {
                                         responseMsg = "Whole process done, socket closed.";
@@ -294,7 +291,7 @@ namespace _780200XXC00
 
                                         // Copy over the data.xml with Pass 1 out of 4 times, or Fail for testing
                                         Random passFailRand = new Random(DateTime.Now.Millisecond);
-                                        int passFail = passFailRand.Next(0, 5);
+                                        int passFail = passFailRand.Next(0, 6);
                                         if (passFail != 1)
                                         {
                                             FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");

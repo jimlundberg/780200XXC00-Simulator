@@ -286,7 +286,7 @@ namespace _780200XXC00
                                     Random sendLateOrNotRand = new Random(DateTime.Now.Millisecond);
                                     Random setRand = new Random(DateTime.Now.Millisecond);
                                     int sendMessageLateOrNot = sendLateOrNotRand.Next(0, 9);
-                                    int randomWait = setRand.Next(2000, (sendMessageLateOrNot != 1) ? 5000 : 60000);
+                                    int randomWait = setRand.Next((sendMessageLateOrNot != 1) ? 2000 : 50000, (sendMessageLateOrNot != 1) ? 5000 : 60000);
 
                                     Console.WriteLine(string.Format("Waiting to send complete data.xml for {0} msec", randomWait));
                                     Thread.Sleep(randomWait);

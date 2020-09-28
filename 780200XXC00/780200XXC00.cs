@@ -262,51 +262,48 @@ namespace _780200XXC00
                             }
                             else
                             {
-                                // Don't send Process complete at all for 1 out of 5 jobs
-                                Random sendOrNotRand = new Random(DateTime.Now.Millisecond);
-                                int sendMessageOrNot = sendOrNotRand.Next(0, 7);
-                                if (sendMessageOrNot != 1)
+                                // Send the weird message for 1 out of 4 times
+                                Random weirdRand = new Random(DateTime.Now.Millisecond);
+                                int weirdMessage = weirdRand.Next(0, 6);
+                                if (weirdMessage != 1)
                                 {
-                                    // Send the weird message for 1 out of 4 times
-                                    Random weirdRand = new Random(DateTime.Now.Millisecond);
-                                    int weirdMessage = weirdRand.Next(0, 6);
-                                    if (weirdMessage != 1)
+                                    responseMsg = "Whole process done, socket closed.";
+                                }
+                                else
+                                {
+                                    // Sometimes the modeler gives this combined message for the final message
+                                    responseMsg = "Step 1 in process. Whole process done, socket closed.";
+                                }
+
+                                // Send the message to the connected TcpServer
+                                byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
+                                stream.Write(responseData, 0, responseData.Length);
+                                Console.WriteLine(string.Format("Sent: {0}", responseMsg));
+
+                                if (modelerStepState == ModelerStepState.STEP_COMPLETE)
+                                {
+                                    // Simulate real opertion where Modeler delays writing the data.xml file with the OverallResult field after TCP/IP is done
+                                    Random sendLateOrNotRand = new Random(DateTime.Now.Millisecond);
+                                    Random setRand = new Random(DateTime.Now.Millisecond);
+                                    int sendMessageLateOrNot = sendLateOrNotRand.Next(0, 7);
+                                    int randomWait = setRand.Next(2000, (sendMessageLateOrNot != 1) ? 5000 : 60000);
+
+                                    Console.WriteLine(string.Format("Waiting to send complete data.xml for {0} msec", randomWait));
+                                    Thread.Sleep(randomWait);
+
+                                    // Copy over the data.xml with Pass 1 out of 4 times, or Fail for testing
+                                    Random passFailRand = new Random(DateTime.Now.Millisecond);
+                                    int passFail = passFailRand.Next(0, 6);
+                                    if (passFail != 1)
                                     {
-                                        responseMsg = "Whole process done, socket closed.";
+                                        FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
                                     }
                                     else
                                     {
-                                        // Sometimes the modeler gives this combined message for the final message
-                                        responseMsg = "Step 1 in process. Whole process done, socket closed.";
+                                        FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
                                     }
 
-                                    // Send the message to the connected TcpServer
-                                    byte[] responseData = Encoding.ASCII.GetBytes(responseMsg);
-                                    stream.Write(responseData, 0, responseData.Length);
-                                    Console.WriteLine(string.Format("Sent: {0}", responseMsg));
-
-                                    if (modelerStepState == ModelerStepState.STEP_COMPLETE)
-                                    {
-                                        // Simulate real opertion where it usually waits to deposit the data.xml file with the OverallResult field after TCP/IP is done
-                                        Random setRand = new Random(DateTime.Now.Millisecond);
-                                        int randomWait = setRand.Next(2000, 12000);
-                                        Console.WriteLine(string.Format("Waiting to send complete data.xml for {0} msec", randomWait));
-                                        Thread.Sleep(randomWait);
-
-                                        // Copy over the data.xml with Pass 1 out of 4 times, or Fail for testing
-                                        Random passFailRand = new Random(DateTime.Now.Millisecond);
-                                        int passFail = passFailRand.Next(0, 6);
-                                        if (passFail != 1)
-                                        {
-                                            FileHandling.CopyFile(testPassDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                        }
-                                        else
-                                        {
-                                            FileHandling.CopyFile(testFailDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
-                                        }
-
-                                        simulationComplete = true;
-                                    }
+                                    simulationComplete = true;
                                 }
                             }
                         }

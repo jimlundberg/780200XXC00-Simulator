@@ -162,8 +162,13 @@ namespace _780200XXC00
             string testPassDirectory = testDirectory + @"\" + Job + " - Pass";
             string testFailDirectory = testDirectory + @"\" + Job + " - Fail";
             string testNoneDirectory = testDirectory + @"\" + Job + " - None";
+            string testStartDirectory = testDirectory + @"\" + Job + " - Start";
 
             Console.WriteLine("\n780200XXC00 Simulator Starting...");
+
+            // Copy the starting data.xml file to the job Processing Buffer directory
+            Thread.Sleep(5000);
+            FileHandling.CopyFile(testStartDirectory + @"\" + "Data.xml", ProcessingBufferDirectory + @"\" + "Data.xml");
 
             // TcpListener server = new TcpListener(port);
             TcpListener tcpListener = new TcpListener(IPAddress.Parse(Server), Port);

@@ -134,7 +134,6 @@ namespace _780200XXC00
         private static string Job;
         private static string ExecutableDirectory;
         private static string ProcessingBufferDirectory;
-        private static readonly string TestDirectory = @"C:\SSMCharacterizationHandler\test";
         private static readonly string Server = "127.0.0.1";
         private static int Port = 3000;
         private static int CpuCores = 4;
